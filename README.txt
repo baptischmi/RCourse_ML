@@ -5,4 +5,4 @@
 ##############
 
 
-This directory includes the files for the participants of the R-course "Machine Learning using R"
+This directory includes the files for the participants of the R-course "Machine Learning using R".
