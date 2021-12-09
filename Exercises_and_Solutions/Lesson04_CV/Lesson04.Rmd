@@ -1,0 +1,20 @@
+---
+title: "Lesson04"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+root_path <- "C:/Git/RCourse_ML"
+exerices_path <- file.path(root_path, "Exercises_and_Solutions")
+```
+
+```{r}
+library(class)
+```
+
+load CSV
+```{r}
+taxi <- read.csv(file.path(lesson_path, "taxi.csv"))
+str(taxi)
+table(taxi$col)
+```

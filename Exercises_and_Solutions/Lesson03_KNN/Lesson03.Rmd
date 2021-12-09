@@ -1,0 +1,187 @@
+---
+title: "Lesson03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+root_path <- "C:/Git/RCourse_ML"
+exerices_path <- file.path(root_path, "Exercises_and_Solutions")
+```
+
+```{r}
+library(MASS) # to load dataset
+library(class)
+
+```
+
+
+## Lesson 03 - KNN
+
+```{r}
+lesson_path <- file.path(exerices_path, "Lesson03_KNN")
+```
+
+
+### exercies 1
+```{r}
+str(crabs)
+table(crabs$sex, crabs$sp)
+```
+keep predictors
+```{r}
+knn_dat <- crabs[4:8]
+```
+
+#### fit a KNN with 3 neighbours for SPECIES
+```{r}
+knn.pred <- knn(train = knn_dat, # use the iris data as training data
+  test = knn_dat, # knn always needs a specified test set
+  cl = crabs$sp, # correct labels of training set
+  k = 3) # parameter k
+
+```
+
+
+Confusion matrix:
+```{r}
+confT <- table(knn.pred, crabs$sp)
+confT
+```
+Training error:
+```{r}
+missT <- confT
+diag(missT) <- 0 # turn diagonal values to zeros
+missCount <- sum(missT) # count the miss-classifications (5)
+trainErr <- missCount/nrow(crabs)
+trainErr
+```
+#### fit a KNN with 3 neighbours for SEX
+
+```{r}
+knn.pred.sex <- knn(train = knn_dat, # use the iris data as training data
+  test = knn_dat, # knn always needs a specified test set
+  cl = crabs$sex, # correct labels of training set
+  k = 3) # parameter k
+
+```
+Confusion matrix:
+```{r}
+confT <- table(knn.pred.sex, crabs$sex)
+confT
+```
+Training error:
+```{r}
+missT <- confT
+diag(missT) <- 0 # turn diagonal values to zeros
+missCount <- sum(missT) # count the miss-classifications (5)
+trainErr <- missCount/nrow(crabs)
+trainErr
+```
+
+
+#### fit a KNN with 3 neighbours for SEXxSpecies
+
+```{r}
+crabs$sp_sex <- interaction(crabs$sp, crabs$sex)
+table(crabs$sp_sex)
+```
+
+
+```{r}
+knn.pred.spsex <- knn(train = knn_dat, # use the iris data as training data
+  test = knn_dat, # knn always needs a specified test set
+  cl = crabs$sp_sex, # correct labels of training set
+  k = 3) # parameter k
+
+```
+Confusion matrix:
+```{r}
+confT <- table(knn.pred.spsex, crabs$sp_sex)
+confT
+```
+Training error:
+```{r}
+missT <- confT
+diag(missT) <- 0 # turn diagonal values to zeros
+missCount <- sum(missT) # count the miss-classifications (5)
+trainErr <- missCount/nrow(crabs)
+trainErr
+```
+
+### exercies 2
+load CSV
+```{r}
+taxi <- read.csv(file.path(lesson_path, "taxi.csv"))
+str(taxi)
+table(taxi$col)
+```
+make colour variabel as factor
+```{r}
+taxi$col_f <- as.factor(taxi$col)
+```
+
+run KNN using a 1000 test samples, and 4 neighbours
+```{r}
+set.seed(111)
+N <- 1000
+index <- sample(1:nrow(taxi), N, replace = FALSE)
+taxi_train <- taxi[-test_index, ]
+taxi_test <- taxi[test_index, ]
+```
+
+
+```{r}
+knn_pred_tr <- knn(train = taxi_train[, 1:6],
+                 test = taxi_train[, 1:6],
+                 cl = taxi_train[, "col"],
+                 k = 4
+                 )
+```
+
+Confusion matrix:
+```{r}
+confT_tr <- table(knn_taxi1, taxi[test_index, "col"])
+confT_tr
+```
+Training error:
+```{r}
+missT <- confT_tr
+diag(missT) <- 0 # turn diagonal values to zeros
+missCount <- sum(missT) # count the miss-classifications (5)
+trainErr_tr <- missCount/nrow(taxi_train)
+trainErr_tr
+```
+
+
+```{r}
+knn_pred_te <- knn(train = taxi_test[, 1:6],
+                 test = taxi_test[, 1:6],
+                 cl = taxi_test[, "col"],
+                 k = 4
+                 )
+```
+
+Confusion matrix:
+```{r}
+confT_te <- table(knn_taxi1, taxi[test_index, "col"])
+confT_te
+```
+Training error:
+```{r}
+missT <- confT
+diag(missT) <- 0 # turn diagonal values to zeros
+missCount <- sum(missT) # count the miss-classifications (5)
+trainErr_te <- missCount/nrow(taxi_test)
+trainErr_te
+```
+
+
+
+
+
+
+
+
+
+

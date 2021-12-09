@@ -1,0 +1,88 @@
+---
+title: "Lesson01-PCA"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+root_path <- "C:/Git/RCourse_ML"
+exerices_path <- file.path(root_path, "Exercises_and_Solutions")
+```
+
+## Lesson 01 - PCA
+
+```{r}
+lesson_path <- file.path(exerices_path, "Lesson01_PCA")
+```
+
+
+load CSV
+```{r}
+bcw <- read.csv(file.path(lesson_path, "breastCancer_Wisconsin.csv"), stringsAsFactors = FALSE)
+```
+
+
+There are `rnrow(bcw)-1` variables, of each 32 observations
+
+# run PCA
+
+remove the id colum (incremental ids) and the diagnosis (categorial) column
+```{r}
+pca_dat <- bcw[, 3:ncol(bcw)]
+```
+
+```{r}
+pca_1 <- prcomp(pca_dat, scale = TRUE)
+pca_2 <- prcomp(pca_dat, scale = FALSE)
+```
+
+```{r}
+summary(pca_1)
+```
+PC1 explains `r summary(pca_1)$importance[2, 'PC1']` of the variance, the first four PCs explains `r summary(pca_1)$importance[3, 'PC4']`.
+
+The variable contributing most to PC1 is (in decreasing order):
+```{r}
+t_val <- "PC1"
+head(pca_1$rotation[order(abs(pca_1$rotation[, t_val]), decreasing = TRUE), t_val])
+
+```
+
+coordinate fo the first obs for the first three PCs are:
+```{r}
+pca_1$x[1, 1:3]
+```
+
+
+## Visualise biplot
+
+
+```{r}
+plot(PC2 ~PC1, data = pca_1$x, col = as.factor(bcw$diagnosis))
+legend("bottomleft", c("benign", "malignat"), pch = c(19,19), col = 1:2, cex = 1.7)
+```
+
+
+compare PCA without scaling
+
+```{r}
+plot(PC2 ~ PC1, data = pca_2$x, col = as.factor(bcw$diagnosis))
+legend("bottomleft", c("benign", "malignat"), pch = c(19,19), col = 1:2, cex = 1.7)
+```
+
+```{r}
+library(ggplot2)
+library(ggfortify)
+bcw$col <- ifelse(bcw$diagnosis == "B", 1, 2)
+autoplot(pca_1, col = as.factor(bcw$col))
+```
+
+
+
+## Scree plot
+```{r}
+
+screeplot(pca_1, npcs = 10, type = 'l')
+
+```
+

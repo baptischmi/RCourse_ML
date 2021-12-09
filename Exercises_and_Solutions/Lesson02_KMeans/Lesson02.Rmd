@@ -1,0 +1,122 @@
+---
+title: "Lesson02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+root_path <- "C:/Git/RCourse_ML"
+exerices_path <- file.path(root_path, "Exercises_and_Solutions")
+```
+
+```{r}
+# library(ggplot2)
+# library(ggfortify)
+
+```
+
+
+## Lesson 02 - K-Means
+
+```{r}
+lesson_path <- file.path(exerices_path, "Lesson02_KMeans")
+```
+
+
+load CSV
+```{r}
+wq_r <- read.csv(file.path(lesson_path, "winequality-red.csv"))
+wq_r$colour = "red"
+wq_w <- read.csv(file.path(lesson_path, "winequality-white.csv"))
+wq_w$colour = "wht"
+wq <- rbind(wq_r, wq_w)
+wq$col_f <- ifelse(wq$colour == "red", 2, 3)
+```
+
+
+```{r}
+str(wq)
+```
+
+## PCA
+```{r}
+pca_1 <- prcomp(wq[,1:12], scale = TRUE)
+```
+
+```{r}
+plot(PC2 ~PC1, data = pca_1$x, col = wq$col_f)
+legend("topright", c("Red", "Wht"), pch = c(19,19), col = 2:3, cex = 1.7)
+```
+
+## K-Means
+
+use PC1 and PC2 for the aim of the excercise
+```{r}
+km_dat <- pca_1$x[, 1:2]
+```
+
+
+```{r}
+set.seed(111)
+km_1 <- kmeans(km_dat, centers = 2)
+plot(km_dat, col=km_1$cluster)
+points(km_1$centers, col="gold", pch=8, cex=3)
+
+```
+
+Change seeds
+```{r}
+set.seed(12)
+km_2 <- kmeans(km_dat, centers = 2)
+plot(km_dat, col=km_2$cluster, pch=1)
+points(km_2$centers, col="gold", pch=8, cex=3)
+
+```
+
+
+
+```{r}
+set.seed(12)
+km_2 <- kmeans(km_dat, centers = 3)
+plot(km_dat, col=km_2$cluster, pch=1)
+points(km_2$centers, col="gold", pch=8, cex=3)
+
+```
+
+
+## find optimal cluster number
+
+within-cluster sums of squares
+```{r}
+wss <- numeric() # initialize
+set.seed(234)
+for(i in 1:6){ # Check for up to 6 clusters
+  wss[i] <- kmeans(km_dat, centers = i)$tot.withinss # Sum of within-clust.SumSquares
+}
+plot(1:6, wss, type = 'b',
+xlab = 'Number of centers',
+ylab = 'Within-cluster sums of squares (total)')
+```
+
+## hierachical clustering
+
+```{r}
+# Calculate Euclidean distances:
+dist.points <- dist(km_dat)
+# Apply agglomerative clustering:
+hc <- hclust(dist.points, method = 'ward.D2')
+# Plot the dendogram
+plot(hc, xlab = 'ObservationIDs')
+# Split data into top two clusters:
+cutree(hc, k=2)
+```
+
+## Combine K-Means with hierachical clustering
+
+```{r}
+km_12 <- kmeans(km_dat, centers = 12) # use up to 12 cluster, one for each dimention
+
+
+
+```
+
