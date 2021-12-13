@@ -15,11 +15,11 @@ KNN_crossVal <- function(data, label, k_fold=10, KNN_k=1){
             KNN_k<=nrow(data))
   # Create k sub-selections
   n <- nrow(data)
-  ind_s <- sample(1:n)
+  ind_s <- sample(1:n)# mix up the order of the dataset
   ind.L <- list()
   j1 <- 1
   for (i in 1:k_fold){
-    j2 <- (i*n) %/% k_fold
+    j2 <- (i*n) %/% k_fold # check 150 / 9 or 150 %/% 9
     ind.L[[i]] <- ind_s[j1:j2]
     j1 <- j2+1
   }

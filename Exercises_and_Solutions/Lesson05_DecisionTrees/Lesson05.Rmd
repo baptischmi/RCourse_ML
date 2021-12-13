@@ -1,0 +1,118 @@
+---
+title: "Lesson05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+root_path <- "C:/Git/RCourse_ML"
+exerices_path <- file.path(root_path, "Exercises_and_Solutions")
+```
+
+
+```{r}
+library(MASS) # to load dataset
+library(rpart)
+library(party)
+
+```
+
+Classification
+```{r}
+ctree.iris <- ctree(Species ~., data=iris) # fit tree
+plot(ctree.iris)
+pred.ctree <- predict(ctree.iris, newdata=iris, type='response')
+(confT <- table(pred.ctree, iris$Species))
+
+```
+
+Regression
+```{r}
+ctree.iris <- ctree(Sepal.Length ~., data=iris) # fit regression tree
+plot(ctree.iris)
+# Get the predicted values (for training data):
+pred.ctree <- predict(ctree.iris, iris, type='response')
+
+```
+
+
+
+### exercies 1
+```{r}
+str(Pima.tr)
+table(Pima.tr$type)
+```
+
+```{r, include=FALSE}
+Pima_char <- Pima.tr
+Pima_char$type <- as.character(Pima_char$type)
+str(Pima_char)
+```
+
+
+Diabetic Y/N classification
+```{r}
+ctree_1 <- ctree(type ~., data=Pima.tr) # fit tree
+plot(ctree_1)
+```
+
+trainign error
+```{r}
+pred.ctree <- predict(ctree_1, newdata=Pima.tr, type='response')
+(confT <- table(pred.ctree, Pima.tr$type))
+```
+
+
+```{r}
+#*********************************************************************************
+#   CV FUNCTION   ####
+#*********************************************************************************
+TREE_crossVal <- function(data, label, k_fold=10){
+  stopifnot(nrow(data)==length(label), is.factor(label), 
+            (1<k_fold & k_fold<=nrow(data)))
+  # Create k sub-selections
+  n <- nrow(data)
+  ind_s <- sample(1:n)# mix up the order of the dataset
+  ind.L <- list()
+  j1 <- 1
+  for (i in 1:k_fold){
+    j2 <- (i*n) %/% k_fold # check 150 / 9 or 150 %/% 9
+    ind.L[[i]] <- ind_s[j1:j2]
+    j1 <- j2+1
+  }
+  # Now run KNN on each selection (and collect results):
+  confMat <- matrix(0,nrow=nlevels(label), ncol=nlevels(label))
+  for(fold in 1:k_fold){
+    ind_fold <- ind.L[[fold]]
+
+    trainDat <- data[-ind_fold,]
+    testDat <- data[ind_fold,]
+    trainSolu <- label[-ind_fold]
+    testSolu <- label[ind_fold]
+    
+    dat.tr <- cbind(trainDat, "y"=trainSolu)
+    ctree.pred <- party::ctree(y ~., data=dat.tr)
+
+
+    pred.ctree <- predict(ctree.pred, newdata=testDat, type='response')
+    confMat.fold <- table(pred.ctree, testSolu)
+
+    confMat <- confMat + confMat.fold
+  }
+  # Calculate estimated test-error
+  missMat <- confMat
+  diag(missMat) <- 0
+  missCount <- sum(missMat)
+  test.err <- missCount/n
+  L.res <- list(k_fold=k_fold, Indices=ind.L, 
+                confMatrix=confMat, errorRate=test.err)
+  return(L.res)
+}
+
+```
+### Try out function:
+```{r}
+TREE_crossVal(data = Pima.tr[,1:7], label = Pima.tr[,8], k_fold = 10)
+
+```
+
