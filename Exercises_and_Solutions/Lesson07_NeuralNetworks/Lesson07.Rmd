@@ -13,6 +13,7 @@ exerices_path <- file.path(root_path, "Exercises_and_Solutions")
 library(MASS)
 library(caret)
 library(nnet)
+library(party)
 ```
 
 
@@ -55,8 +56,11 @@ summary(nn1)
 ```
 with identity (linear) output unit >> use THIS
 
-```{r, message = FALSE}
+```{r, include = FALSE}
 nn2 <- nnet(medv ~., data = dat, size = 1, decay=0, maxit=10000, linout = TRUE)
+
+```
+```{r}
 summary(nn2)
 ```
 
@@ -70,24 +74,76 @@ see how a much more complex network performs. Hint: expand.grid(..., decay=0)
 t.grid <- expand.grid(size=c(1,2,3,20), decay=c(0))
 t.grid
 ```
+e) Use the train() function of caret to train a single hidden layer neural network along our search grid
+(This might take approx. 3 minutes). What structure was finally selected? What was the RMSE of this
+model? How did the most complex NN perform?
 
-```{r, message=FALSE}
-tune.caret <- train(medv ~ ., data=dat,
+```{r, include=FALSE}
+tune.nn <- train(medv ~ ., data=dat,
   method='nnet', tuneGrid=t.grid, maxit=10000,
   linout=TRUE, preProcess=NULL) # pre-processing z-transformed already done above
 ```
 
+```{r}
+tune.nn
+```
 
 
-e) Use the train() function of caret to train a single hidden layer neural network along our search grid
-(This might take approx. 3 minutes). What structure was finally selected? What was the RMSE of this
-model? How did the most complex NN perform?
+
+
 f) We want to compare how a Random Forest is performing with this data set. Fit a Random Forest
 with the cforest() function to the Boston data consisting of 500 trees and an mtry value of 5. We
 want to calculate the (OOB) RMSE of the Random Forest. To this end we need to subtract the
 OOB predictions from the true medv values, and take the root of the mean squared differences (Hint:
 sqrt(mean((d.bos$medv - ...))ˆ2)). What is the RMSE of the Random Forest?
-Exercise 2: Image classification with the MNIST dataset
+
+
+Fixed split into training and test datasets
+```{r}
+set.seed(1241)
+index <- sample(1:nrow(dat))
+j2 <- nrow(dat) %*% 0.3 
+index <- index[1:j2]
+dat_tr <- dat[-index, ]
+dat_te <- dat[index, ]
+```
+
+train RF model
+```{r}
+cfor_ctr <- cforest_unbiased(ntree = 500, mtry = 5)
+rf1 <- cforest(medv~., data = dat_tr, controls = cfor_ctr)
+```
+Predict RF model to get RSME
+```{r}
+rf_pred <- predict(rf1, newdat = dat_te)
+dat_te <- cbind(dat_te, "yrf" = as.vector(rf_pred))
+dat_te$er_rf <- dat_te$y - dat_te$yrf
+rmse_rf <- sqrt(mean(dat_te$er_rf^2))
+rmse_rf
+```
+
+```{r}
+#10 folds repeat 3 times
+control <- trainControl(method='repeatedcv', 
+                        number=10, 
+                        repeats=3)
+#Metric compare model is Accuracy
+metric <- "Accuracy"
+set.seed(123)
+#Number randomly variable selected is mtry
+tunegrid <- expand.grid(.mtry=5)
+rf_default <- train(medv~., 
+                      data=dat, 
+                      method='rf', 
+                      metric='Accuracy', 
+                      tuneGrid=tunegrid, 
+                      trControl=control)
+print(rf_default)
+```
+
+
+
+## Exercise 2: Image classification with the MNIST dataset
 The MNIST dataset contains a collection of 28x28 pixel images of handwritten digits (grayscale). It is a
 commonly used data set to train and test machine learning methods for visual processing.
 1
